@@ -16,13 +16,13 @@ const redis = Redis.fromEnv();
 const ipRatelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(1, "24 h"),
-  prefix: "money-simulator:ip",
+  prefix: "money-simulator:ip:v1",
 });
 
 const globalRatelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5, "24 h"),
-  prefix: "money-simulator:global",
+  prefix: "money-simulator:global:v1",
 });
 
 
