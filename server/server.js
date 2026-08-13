@@ -26,7 +26,9 @@ const globalRatelimit = new Ratelimit({
 });
 
 
-app.use(cors());
+app.use(cors({
+  origin: "https://money-simulator.kvs171005.workers.dev/"
+}));
 app.use(express.json({ limit: "10mb" }));
 
 const hf = new InferenceClient(process.env.HF_TOKEN);
