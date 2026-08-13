@@ -2,23 +2,29 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { InferenceClient } from "@huggingface/inference";
-import { rateLimit } from "express-rate-limit";
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
 
 dotenv.config();
 
-const hf = new InferenceClient(process.env.HF_TOKEN);
-const generationLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000,
-  limit: 2,
-  standardHeaders: "draft-8",
-  legacyHeaders: false,
-  message: {
-    error: "Ліміт генерацій вичерпано. Спробуйте пізніше."
-  }
-});
-
 const app = express();
 const port = process.env.PORT || 4000;
+
+
+const redis = Redis.fromEnv();
+
+const ipRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1, "24 h"),
+  prefix: "money-simulator:ip",
+});
+
+const globalRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "24 h"),
+  prefix: "money-simulator:global",
+});
+
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -33,13 +39,35 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/api/generate-image", generationLimiter, async (req, res) => {
+app.post("/api/generate-image", async (req, res) => {
   try {
     const userPrompt = normalizePrompt(req.body?.prompt || "");
 
     if (!userPrompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
+
+    const ip = req.ip || "unknown";
+
+const ipLimit = await ipRatelimit.limit(ip);
+
+if (!ipLimit.success) {
+  return res.status(429).json({
+    error: "Ви вже використали безкоштовну генерацію. Спробуйте через 24 години."
+  });
+}
+
+const globalLimit = await globalRatelimit.limit("all-users");
+
+if (!globalLimit.success) {
+  // Повертаємо користувачеві його особисту спробу,
+  // бо Hugging Face навіть не викликався.
+  await ipRatelimit.resetUsedTokens(ip);
+
+  return res.status(429).json({
+    error: "Денний ліміт AI-генерацій для сайту вичерпано. Спробуйте завтра."
+  });
+}
 
     const prompt = `${userPrompt}, realistic product photo, clean background, studio lighting, ecommerce style`;
 
