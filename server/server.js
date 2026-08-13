@@ -2,8 +2,20 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { InferenceClient } from "@huggingface/inference";
+import { rateLimit } from "express-rate-limit";
 
 dotenv.config();
+
+const hf = new InferenceClient(process.env.HF_TOKEN);
+const generationLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  limit: 2,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    error: "Ліміт генерацій вичерпано. Спробуйте пізніше."
+  }
+});
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -21,7 +33,7 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/api/generate-image", async (req, res) => {
+app.post("/api/generate-image", generationLimiter, async (req, res) => {
   try {
     const userPrompt = normalizePrompt(req.body?.prompt || "");
 

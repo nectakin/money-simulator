@@ -16,7 +16,7 @@ const START_BALANCE = 1_000_000;
 const INCOME_AMOUNT = 100_000;
 const INCOME_INTERVAL_MS = 3 * 60 * 1000;
 const STORAGE_KEY = "money_simulator_fullstack_state";
-const API_BASE = "http://localhost:4000";
+const API_BASE =  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 type Item = {
   id: string;
@@ -140,12 +140,12 @@ async function generateImageViaBackend(prompt: string) {
     body: JSON.stringify({ prompt }),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Image generation failed");
+    throw new Error(data.error || "Не вдалося згенерувати зображення");
   }
 
-  const data = await response.json();
   return data.imageBase64 as string;
 }
 
@@ -303,7 +303,11 @@ export default function App() {
       setMessage("Предмет згенеровано");
     } catch (error) {
       console.error(error);
-      setMessage("Не вдалося згенерувати зображення");
+      if (error instanceof Error) {
+        setMessage(error.message);
+      } else {
+        setMessage("Не вдалося згенерувати зображення");
+      }
     } finally {
       setIsGenerating(false);
     }
