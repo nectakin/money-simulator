@@ -25,9 +25,18 @@ const globalRatelimit = new Ratelimit({
   prefix: "money-simulator:global:v1",
 });
 
+const allowedOrigins = [
+  "https://money-simulator.kvs171005.workers.dev",
+  "http://localhost:5173"];
 
 app.use(cors({
-  origin: "https://money-simulator.kvs171005.workers.dev/"
+    origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  }
 }));
 app.use(express.json({ limit: "10mb" }));
 
