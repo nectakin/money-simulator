@@ -1,73 +1,126 @@
-# React + TypeScript + Vite
+# Money Simulator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive web application for simulating purchases with a virtual balance, AI-generated item images, wishlist management, purchase history, and automatic balance replenishment.
 
-Currently, two official plugins are available:
+### [Live Demo ↗](https://money-simulator.kvs171005.workers.dev/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Overview
 
-## React Compiler
+Money Simulator is an interactive full-stack web application that allows users to simulate purchases using a virtual balance.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Users can search for almost any item, generate a product image with AI, view an estimated price, purchase the item, or save it to a wishlist.
 
-## Expanding the ESLint configuration
+The application also keeps track of purchase history, total spending, and automatically replenishes the virtual balance over time.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Features
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Virtual starting balance
+- Automatic balance replenishment
+- Item search and generation
+- AI-generated product images
+- Estimated item prices
+- Purchase system
+- Wishlist
+- Purchase history
+- Total spending calculation
+- Persistent state with LocalStorage
+- Responsive interface
+- Loading and error states
+- API rate limiting
+- Per-user generation limits
+- Global generation limits
+- Restricted CORS access
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- React
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Node.js
+- Express
+- Hugging Face Inference API
+- Upstash Redis
+- Cloudflare Workers
+- Render
+
+## How It Works
+
+```text
+User enters an item
+        ↓
+Frontend sends a request to the backend
+        ↓
+API rate limits are checked
+        ↓
+Hugging Face generates the item image
+        ↓
+The application estimates the item price
+        ↓
+User can purchase the item
+or add it to the wishlist
+        ↓
+Application state is saved in LocalStorage 
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project structure
+```text
+money-simulator/
+├── client/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── .env.example
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── wrangler.jsonc
+│
+├── server/
+│   ├── .env.example
+│   ├── package.json
+│   └── server.js
+│
+└── README.md
 ```
+
+## Key Implementation Details
+### AI image generation
+
+The frontend sends the user's item request to the Node.js backend. The backend prepares the prompt and sends it to the Hugging Face Inference API to generate a product-style image.
+
+### Virtual purchase system
+
+Users can purchase generated items using a virtual balance. Purchased items are added to the purchase history, while the total spending amount is calculated automatically.
+
+### Wishlist
+
+Generated items can be saved to a wishlist and purchased later without generating them again.
+
+### Persistent application state
+
+The application stores the balance, wishlist, purchase history, and other relevant state in LocalStorage, allowing the data to persist between browser sessions.
+
+### API protection
+
+AI generation requests are protected using Upstash Redis rate limiting.
+
+The application limits the number of requests per user as well as the total number of AI generations available within a defined period.
+
+The backend also restricts CORS access to the production frontend.
+
+### Deployment
+
+The frontend is deployed using Cloudflare Workers, while the Node.js backend is hosted on Render.
+
+Environment variables are used to keep API tokens and service credentials outside of the source code.
+
+### Live Website
+
+**[Open Money Simulator ↗](https://money-simulator.kvs171005.workers.dev/)**
+
+### Author
+
+Made by Veronika Kuzmenko.
+
+Full-stack web development project created as part of my portfolio.
